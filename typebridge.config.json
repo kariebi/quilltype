@@ -1,0 +1,28 @@
+{
+  "$schema": "./schemas/typebridge.schema.json",
+  "source": {
+    "path": "./examples/petstore.openapi.json"
+  },
+  "outputs": [
+    {
+      "path": "./src/generated/api-types.ts",
+      "mode": "types"
+    },
+    {
+      "path": "./src/generated/api-client.ts",
+      "mode": "fetch-client"
+    },
+    {
+      "path": "./src/generated/api-react-query.ts",
+      "mode": "react-query"
+    }
+  ],
+  "validation": {
+    "requireOperationIds": true,
+    "requireResponseSchemas": true
+  },
+  "watch": {
+    "pollIntervalMs": 30000,
+    "retryDelayMs": 5000
+  }
+}

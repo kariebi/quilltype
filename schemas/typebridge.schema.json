@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://typebridge.dev/schemas/typebridge.schema.json",
+  "title": "TypeBridge Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source", "outputs"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/output"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requireOperationIds": {
+          "type": "boolean"
+        },
+        "requireResponseSchemas": {
+          "type": "boolean"
+        }
+      }
+    },
+    "breaking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["against"],
+      "properties": {
+        "against": {
+          "$ref": "#/$defs/source"
+        }
+      }
+    },
+    "watch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pollIntervalMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "retryDelayMs": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "required": ["path"]
+        },
+        {
+          "required": ["url"]
+        }
+      ]
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "mode"],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["types", "fetch-client", "react-query"]
+        }
+      }
+    }
+  }
+}
