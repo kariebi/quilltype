@@ -176,7 +176,7 @@ Target planning date: `2026-07-22`
 
 - [ ] Add `axios-client`
 - [ ] Add `swr`
-- [ ] Add `zod` output
+- [ ] Add `zod` output.
 - [ ] Consider JSON Schema export for runtime validation workflows
 - [ ] Add generator presets for common stacks
 
