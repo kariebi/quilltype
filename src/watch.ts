@@ -62,7 +62,7 @@ export async function runWatchMode(args: WatchArgs): Promise<void> {
           if (!remoteFailureReported) {
             args.onError(
               new Error(
-                `Remote watch polling failed for ${plan.remote!.url}. TypeBridge will retry automatically. ${error instanceof Error ? error.message : String(error)}`,
+                `Remote watch polling failed for ${plan.remote!.url}. Quill Type will retry automatically. ${error instanceof Error ? error.message : String(error)}`,
               ),
             );
             remoteFailureReported = true;
@@ -126,7 +126,7 @@ export async function runWatchMode(args: WatchArgs): Promise<void> {
     }
 
     const fallbackPlan = await args.getFallbackPlan();
-    console.log("Watch started in retry mode. TypeBridge will keep polling for the source.");
+    console.log("Watch started in retry mode. Quill Type will keep polling for the source.");
     applyPlan(fallbackPlan, trigger);
   }
 

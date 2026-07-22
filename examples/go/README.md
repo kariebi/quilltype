@@ -7,7 +7,7 @@ This example shows a small Go server that serves a hand-authored OpenAPI documen
 - `backend/main.go`
 - `backend/openapi.json`
 - `frontend/example.ts`
-- `typebridge.config.json`
+- `quilltype.config.json`
 
 ## Run The Backend
 
@@ -26,14 +26,14 @@ From the repo root:
 ```bash
 npm install
 npm run build
-node dist/cli.js generate --config ./examples/go/typebridge.config.json
+node dist/cli.js generate --config ./examples/go/quilltype.config.json
 ```
 
 ## Validate And Check
 
 ```bash
-node dist/cli.js config validate --config ./examples/go/typebridge.config.json
-node dist/cli.js check --config ./examples/go/typebridge.config.json
+node dist/cli.js config validate --config ./examples/go/quilltype.config.json
+node dist/cli.js check --config ./examples/go/quilltype.config.json
 ```
 
 ## Frontend Usage

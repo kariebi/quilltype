@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "TypeBridge Express Example",
+    "title": "Quill Type Express Example",
     "version": "1.0.0"
   },
   "paths": {

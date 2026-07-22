@@ -11,7 +11,7 @@ export interface OutputConfig {
   mode: OutputMode;
 }
 
-export interface TypeBridgeConfig {
+export interface QuillTypeConfig {
   $schema?: string;
   source: SourceConfig;
   outputs: OutputConfig[];
@@ -48,6 +48,6 @@ export interface RuntimeOptions {
   configPathArg?: string;
   sourceOverride?: SourceConfig;
   outputsOverride?: OutputConfig[];
-  watchOverride?: TypeBridgeConfig["watch"];
+  watchOverride?: QuillTypeConfig["watch"];
   againstOverride?: SourceConfig;
 }

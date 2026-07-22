@@ -1,10 +1,10 @@
 import { AppError } from "./errors.js";
 import { asObject, getOperations, resolveRef } from "./oas.js";
-import type { TypeBridgeConfig } from "./types.js";
+import type { QuillTypeConfig } from "./types.js";
 
 export function validateOpenApiDocument(
   document: Record<string, unknown>,
-  config: TypeBridgeConfig,
+  config: QuillTypeConfig,
 ): void {
   const issues: string[] = [];
   const paths = asObject(document.paths);

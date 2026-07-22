@@ -1,23 +1,23 @@
 {
-  "name": "typebridge-cli",
+  "name": "quilltype",
   "version": "1.0.0",
   "description": "An OpenAPI workflow CLI for validation, generation, breaking-change checks, and frontend contract sync.",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kariebi/typebridge.git"
+    "url": "git+https://github.com/kariebi/quilltype.git"
   },
-  "homepage": "https://github.com/kariebi/typebridge#readme",
+  "homepage": "https://github.com/kariebi/quilltype#readme",
   "bugs": {
-    "url": "https://github.com/kariebi/typebridge/issues"
+    "url": "https://github.com/kariebi/quilltype/issues"
   },
   "bin": {
-    "typebridge": "./dist/cli.js"
+    "quilltype": "./dist/cli.js"
   },
   "files": [
     "dist",
     "schemas",
-    "docs/assets/typebridge-architecture.png",
+    "docs/assets/quilltype-architecture.png",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

@@ -1,14 +1,14 @@
-# TypeBridge
+# Quill Type
 
-[![CI](https://github.com/kariebi/typebridge/actions/workflows/ci.yml/badge.svg)](https://github.com/kariebi/typebridge/actions/workflows/ci.yml)
+[![CI](https://github.com/kariebi/quilltype/actions/workflows/ci.yml/badge.svg)](https://github.com/kariebi/quilltype/actions/workflows/ci.yml)
 
-TypeBridge is an OpenAPI workflow CLI for teams that want more than raw type generation.
+Quill Type is an OpenAPI workflow CLI for teams that want more than raw type generation.
 
 It validates contract quality, generates typed frontend outputs, checks for breaking API changes, supports config-first and flags-first usage, and keeps schemas in sync during development.
 
-![TypeBridge architecture](./docs/assets/typebridge-architecture.png)
+![Quill Type architecture](./docs/assets/quilltype-architecture.png)
 
-## Why TypeBridge
+## Why Quill Type
 
 Type generation is only part of the workflow. Teams also need:
 
@@ -19,11 +19,11 @@ Type generation is only part of the workflow. Teams also need:
 - watch mode for local development
 - a path that works across different backend stacks
 
-TypeBridge focuses on that whole contract workflow instead of only the schema-to-type conversion step.
+Quill Type focuses on that whole contract workflow instead of only the schema-to-type conversion step.
 
-## When To Use TypeBridge
+## When To Use Quill Type
 
-Use TypeBridge when:
+Use Quill Type when:
 
 - your backend exposes OpenAPI and you want generated frontend artifacts
 - you need CI to catch stale generated files
@@ -37,11 +37,11 @@ Use a lower-level generator directly when:
 - you do not need validation, watch mode, or breaking checks
 - your team already has a complete wrapper around OpenAPI generation
 
-## TypeBridge vs `openapi-typescript`
+## Quill Type vs `openapi-typescript`
 
 `openapi-typescript` is excellent at turning an OpenAPI contract into TypeScript types.
 
-TypeBridge builds on that layer and adds workflow features around it:
+Quill Type builds on that layer and adds workflow features around it:
 
 - multiple output modes
 - config schema and validation
@@ -51,13 +51,13 @@ TypeBridge builds on that layer and adds workflow features around it:
 - breaking-change checks
 - CI-friendly stale-output detection
 
-If you only need types, `openapi-typescript` alone may be enough. If you want a contract workflow tool, TypeBridge is the better fit.
+If you only need types, `openapi-typescript` alone may be enough. If you want a contract workflow tool, Quill Type is the better fit.
 
-## TypeBridge vs `orval`
+## Quill Type vs `orval`
 
 `orval` is a strong client generator with rich frontend integrations.
 
-TypeBridge is different in emphasis:
+Quill Type is different in emphasis:
 
 - smaller CLI surface
 - simpler output model
@@ -65,11 +65,48 @@ TypeBridge is different in emphasis:
 - explicit breaking-change checks
 - easier multi-stack examples and contract workflows
 
-If your main goal is deep client-generation features across many frontend styles right now, `orval` may still be stronger. If your goal is contract discipline plus generation, TypeBridge is designed for that lane.
+If your main goal is deep client-generation features across many frontend styles right now, `orval` may still be stronger. If your goal is contract discipline plus generation, Quill Type is designed for that lane.
 
 ## Quickstart
 
-Install and build from source:
+Install from npm:
+
+```bash
+npm install -g quilltype
+quilltype --help
+```
+
+Initialize a config:
+
+```bash
+quilltype init
+```
+
+Generate code:
+
+```bash
+quilltype generate
+```
+
+Validate and check:
+
+```bash
+quilltype config validate
+quilltype check
+```
+
+Watch:
+
+```bash
+quilltype watch
+```
+
+More setup detail:
+[Quickstart guide](./docs/quickstart.md)
+
+## Contributing From Source
+
+Contributors and maintainers can run Quill Type directly from the repository:
 
 ```bash
 npm install
@@ -101,25 +138,15 @@ Watch:
 node dist/cli.js watch
 ```
 
-More setup detail:
-[Quickstart guide](./docs/quickstart.md)
-
-Install from npm once published:
-
-```bash
-npm install -g typebridge-cli
-typebridge --help
-```
-
 ## Stable Commands
 
 ```bash
-typebridge init
-typebridge generate
-typebridge check
-typebridge watch
-typebridge config validate
-typebridge doctor
+quilltype init
+quilltype generate
+quilltype check
+quilltype watch
+quilltype config validate
+quilltype doctor
 ```
 
 ## Config-First And Flags-First
@@ -127,7 +154,7 @@ typebridge doctor
 Config-first:
 
 ```bash
-node dist/cli.js generate --config ./typebridge.config.json
+node dist/cli.js generate --config ./quilltype.config.json
 ```
 
 Flags-first:
@@ -159,20 +186,20 @@ More detail:
 
 ## Config Reference
 
-TypeBridge looks for:
+Quill Type looks for:
 
-- `typebridge.config.json`
-- `typebridge.config.yaml`
-- `typebridge.config.yml`
+- `quilltype.config.json`
+- `quilltype.config.yaml`
+- `quilltype.config.yml`
 
 It also ships a schema file:
-[schemas/typebridge.schema.json](/Users/Apple/Documents/code_stuff/typebridge/schemas/typebridge.schema.json)
+[schemas/quilltype.schema.json](./schemas/quilltype.schema.json)
 
 Recommended default config:
 
 ```json
 {
-  "$schema": "./schemas/typebridge.schema.json",
+  "$schema": "./schemas/quilltype.schema.json",
   "source": {
     "path": "./examples/petstore.openapi.json"
   },
@@ -206,7 +233,7 @@ More detail:
 
 ## Breaking-Change Checks
 
-TypeBridge can compare a next contract to a previous one during `check`.
+Quill Type can compare a next contract to a previous one during `check`.
 
 Current checks include:
 
@@ -230,8 +257,8 @@ Typical CI sequence:
 npm ci
 npm run build
 npm test
-node dist/cli.js generate --config ./typebridge.config.json
-node dist/cli.js check --config ./typebridge.config.json
+node dist/cli.js generate --config ./quilltype.config.json
+node dist/cli.js check --config ./quilltype.config.json
 ```
 
 Guide:
@@ -244,7 +271,7 @@ Contributor setup and release notes live in:
 
 ## Examples
 
-TypeBridge includes small examples for multiple backend stacks:
+Quill Type includes small examples for multiple backend stacks:
 
 - [FastAPI](./examples/fastapi/README.md)
 - [Express](./examples/express/README.md)

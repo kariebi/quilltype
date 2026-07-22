@@ -16,7 +16,7 @@ app.get("/projects", (_request, response) => {
   response.json([
     {
       id: "proj_1",
-      name: "TypeBridge Launch",
+      name: "Quill Type Launch",
       status: "active",
     },
   ]);

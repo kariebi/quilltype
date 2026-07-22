@@ -1,13 +1,13 @@
 # FastAPI Example
 
-This example shows the cleanest OpenAPI workflow: FastAPI produces the contract automatically, and TypeBridge generates frontend code from that contract.
+This example shows the cleanest OpenAPI workflow: FastAPI produces the contract automatically, and Quill Type generates frontend code from that contract.
 
 ## Files
 
 - `backend/main.py`
 - `backend/requirements.txt`
 - `frontend/app.tsx`
-- `typebridge.config.json`
+- `quilltype.config.json`
 
 ## Run The Backend
 
@@ -29,14 +29,14 @@ From the repo root:
 ```bash
 npm install
 npm run build
-node dist/cli.js generate --config ./examples/fastapi/typebridge.config.json
+node dist/cli.js generate --config ./examples/fastapi/quilltype.config.json
 ```
 
 ## Validate And Check
 
 ```bash
-node dist/cli.js config validate --config ./examples/fastapi/typebridge.config.json
-node dist/cli.js check --config ./examples/fastapi/typebridge.config.json
+node dist/cli.js config validate --config ./examples/fastapi/quilltype.config.json
+node dist/cli.js check --config ./examples/fastapi/quilltype.config.json
 ```
 
 ## Frontend Usage

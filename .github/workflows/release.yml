@@ -29,8 +29,13 @@ jobs:
       - name: Release readiness check
         run: npm run release:check
 
+      - name: Pack release artifact
+        run: |
+          mkdir -p release-artifacts
+          npm pack --pack-destination ./release-artifacts
+
       - name: Publish to npm
-        run: npm publish
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -38,3 +43,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          files: release-artifacts/*.tgz

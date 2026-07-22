@@ -1,25 +1,29 @@
 # Contributing
 
-TypeBridge supports two main workflows:
+Quill Type supports two main workflows:
 
 - package users installing the published CLI
 - contributors working directly from the source tree
 
 ## For Package Users
 
-Once published, install the CLI with npm:
+Published package users do not need to build Quill Type from source.
+
+Install the CLI globally:
 
 ```bash
-npm install -g typebridge-cli
-typebridge --help
+npm install -g quilltype
+quilltype --help
 ```
 
 Or install it in a project:
 
 ```bash
-npm install --save-dev typebridge-cli
-npx typebridge generate
+npm install --save-dev quilltype
+npx quilltype generate
 ```
+
+That path is enough for everyday usage.
 
 ## For Contributors
 
@@ -76,7 +80,7 @@ Example backends and frontend usage samples live in:
 
 ## Versioning
 
-TypeBridge currently uses manual versioning for releases.
+Quill Type currently uses manual versioning for releases.
 
 That means contributors should:
 

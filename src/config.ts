@@ -3,18 +3,18 @@ import path from "node:path";
 import YAML from "yaml";
 
 import { AppError } from "./errors.js";
-import type { OutputConfig, OutputMode, RuntimeOptions, SourceConfig, TypeBridgeConfig } from "./types.js";
+import type { OutputConfig, OutputMode, RuntimeOptions, SourceConfig, QuillTypeConfig } from "./types.js";
 import { deepReplaceEnvPlaceholders, isUrl } from "./utils.js";
 
 const DEFAULT_CONFIG_FILES = [
-  "typebridge.config.json",
-  "typebridge.config.yaml",
-  "typebridge.config.yml",
+  "quilltype.config.json",
+  "quilltype.config.yaml",
+  "quilltype.config.yml",
 ];
 
-const DEFAULT_SCHEMA_PATH = "./schemas/typebridge.schema.json";
+const DEFAULT_SCHEMA_PATH = "./schemas/quilltype.schema.json";
 
-export function createDefaultConfig(): TypeBridgeConfig {
+export function createDefaultConfig(): QuillTypeConfig {
   return {
     $schema: DEFAULT_SCHEMA_PATH,
     source: {
@@ -60,14 +60,14 @@ export async function resolveConfigPath(explicitPath?: string): Promise<string> 
   }
 
   throw new AppError(
-    "No TypeBridge config file found. Run `typebridge init` or pass `--config <path>`.",
+    "No Quill Type config file found. Run `quilltype init` or pass `--config <path>`.",
     2,
   );
 }
 
 export async function loadConfig(explicitPath?: string): Promise<{
   configPath: string;
-  config: TypeBridgeConfig;
+  config: QuillTypeConfig;
 }> {
   const configPath = await resolveConfigPath(explicitPath);
   const raw = await readFile(configPath, "utf8");
@@ -84,7 +84,7 @@ export async function loadConfig(explicitPath?: string): Promise<{
 
 export async function loadRuntimeConfig(options: RuntimeOptions = {}): Promise<{
   configPath: string;
-  config: TypeBridgeConfig;
+  config: QuillTypeConfig;
 }> {
   const loaded = await loadConfig(options.configPathArg);
   const config = mergeRuntimeOptions(loaded.config, options);
@@ -97,7 +97,7 @@ export async function loadRuntimeConfig(options: RuntimeOptions = {}): Promise<{
 }
 
 export async function writeSampleConfig(targetPath?: string): Promise<string> {
-  const configPath = path.resolve(targetPath ?? "typebridge.config.json");
+  const configPath = path.resolve(targetPath ?? "quilltype.config.json");
 
   try {
     await access(configPath);
@@ -114,7 +114,7 @@ export async function writeSampleConfig(targetPath?: string): Promise<string> {
   return configPath;
 }
 
-export function buildConfigFromFlags(options: RuntimeOptions): TypeBridgeConfig {
+export function buildConfigFromFlags(options: RuntimeOptions): QuillTypeConfig {
   const source = options.sourceOverride;
   const outputs = options.outputsOverride;
 
@@ -132,7 +132,7 @@ export function buildConfigFromFlags(options: RuntimeOptions): TypeBridgeConfig 
     );
   }
 
-  const config: TypeBridgeConfig = {
+  const config: QuillTypeConfig = {
     $schema: DEFAULT_SCHEMA_PATH,
     source,
     outputs,
@@ -157,10 +157,10 @@ export function buildConfigFromFlags(options: RuntimeOptions): TypeBridgeConfig 
 }
 
 export function mergeRuntimeOptions(
-  baseConfig: TypeBridgeConfig,
+  baseConfig: QuillTypeConfig,
   options: RuntimeOptions,
-): TypeBridgeConfig {
-  const nextConfig: TypeBridgeConfig = structuredClone(baseConfig);
+): QuillTypeConfig {
+  const nextConfig: QuillTypeConfig = structuredClone(baseConfig);
 
   if (options.sourceOverride && (options.sourceOverride.path || options.sourceOverride.url)) {
     nextConfig.source = {
@@ -191,7 +191,7 @@ export function mergeRuntimeOptions(
 
 export async function validateRuntimeConfig(options: RuntimeOptions = {}): Promise<{
   configPath: string;
-  config: TypeBridgeConfig;
+  config: QuillTypeConfig;
 }> {
   if (
     !options.configPathArg &&
@@ -199,7 +199,7 @@ export async function validateRuntimeConfig(options: RuntimeOptions = {}): Promi
     (options.sourceOverride.path || options.sourceOverride.url)
   ) {
     return {
-      configPath: path.resolve("typebridge.inline.json"),
+      configPath: path.resolve("quilltype.inline.json"),
       config: buildConfigFromFlags(options),
     };
   }
@@ -222,7 +222,7 @@ export async function ensureWritableFileTarget(filePath: string): Promise<void> 
   throw new AppError(`Output directory is not writable: ${path.dirname(filePath)}`, 2);
 }
 
-export function validateConfigShape(input: unknown): asserts input is TypeBridgeConfig {
+export function validateConfigShape(input: unknown): asserts input is QuillTypeConfig {
   const issues = getConfigValidationIssues(input);
 
   if (issues.length > 0) {
@@ -237,7 +237,7 @@ export function getConfigValidationIssues(input: unknown): string[] {
     return ["Config must be an object."];
   }
 
-  const config = input as TypeBridgeConfig;
+  const config = input as QuillTypeConfig;
 
   validateSource(config.source, "source", issues);
 

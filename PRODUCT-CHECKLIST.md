@@ -1,6 +1,6 @@
-# TypeBridge Product Checklist
+# Quill Type Product Checklist
 
-This file is the working launch checklist for `TypeBridge`.
+This file is the working launch checklist for `Quill Type`.
 
 It is split into:
 
@@ -37,7 +37,7 @@ Target planning date: `2026-07-22`
   - `doctor`
 - [ ] Define the supported output modes for `v1.0`
 - [ ] Define what counts as a breaking change for `v1.0`
-- [ ] Decide whether `TypeBridge` is config-first only or also supports flags-first shortcuts
+- [ ] Decide whether `Quill Type` is config-first only or also supports flags-first shortcuts
 
 ### 2. CLI and Core Engine
 
@@ -105,10 +105,10 @@ Target planning date: `2026-07-22`
 ### 8. Documentation
 
 - [x] Rewrite the main README as product-facing documentation
-- [x] Add a `Why TypeBridge` section
-- [x] Add `TypeBridge vs openapi-typescript`
-- [x] Add `TypeBridge vs Orval`
-- [x] Add `When to use TypeBridge`
+- [x] Add a `Why Quill Type` section
+- [x] Add `Quill Type vs openapi-typescript`
+- [x] Add `Quill Type vs Orval`
+- [x] Add `When to use Quill Type`
 - [x] Add a quickstart guide
 - [x] Add a CI setup guide
 - [x] Add a config reference
@@ -259,7 +259,7 @@ Use this section to record launch decisions as we make them.
 
 - [ ] Decide whether `axios-client` is `v1.0` or `v1.1`
 - [ ] Decide whether `Express` or `NestJS` is the initial Node backend example
-- [x] Package name `typebridge` is already taken on npm; current publish-ready fallback is `typebridge-cli`
+- [x] Package name `typebridge` is already taken on npm; current publish-ready fallback is `quilltype`
 - [x] Versioning approach for `v1.0` is manual
 - [ ] Decide whether `Rust` is required before first public release
 - [ ] Decide whether `react-query` is required for `v1.0`

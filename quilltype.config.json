@@ -1,5 +1,5 @@
 {
-  "$schema": "./schemas/typebridge.schema.json",
+  "$schema": "./schemas/quilltype.schema.json",
   "source": {
     "path": "./examples/petstore.openapi.json"
   },

@@ -1,6 +1,6 @@
 # CI Setup Guide
 
-TypeBridge is designed for CI workflows where generated code must stay current and contract changes must be surfaced early.
+Quill Type is designed for CI workflows where generated code must stay current and contract changes must be surfaced early.
 
 ## Recommended Steps
 
@@ -8,8 +8,8 @@ TypeBridge is designed for CI workflows where generated code must stay current a
 npm ci
 npm run build
 npm test
-node dist/cli.js generate --config ./typebridge.config.json
-node dist/cli.js check --config ./typebridge.config.json
+node dist/cli.js generate --config ./quilltype.config.json
+node dist/cli.js check --config ./quilltype.config.json
 ```
 
 ## Release Workflow
@@ -21,7 +21,7 @@ Recommended sequence:
 1. update `package.json`
 2. update `CHANGELOG.md`
 3. create a git tag such as `v1.0.0`
-4. push the tag so GitHub Actions can publish
+4. push commits and the tag so GitHub Actions can publish to npm and create a GitHub release with the packed tarball attached
 
 ## What `check` Enforces
 

@@ -1,6 +1,6 @@
 # Breaking-Change Checks Guide
 
-TypeBridge can compare the current contract against a previous contract and fail CI when the change is not backward compatible.
+Quill Type can compare the current contract against a previous contract and fail CI when the change is not backward compatible.
 
 ## Supported Breaking Changes
 

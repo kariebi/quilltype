@@ -27,7 +27,7 @@ async function main(): Promise<void> {
     case "init": {
       const targetPath = parsed.options.config
         ? path.resolve(parsed.options.config)
-        : path.resolve("typebridge.config.json");
+        : path.resolve("quilltype.config.json");
       const configPath = await writeSampleConfig(targetPath);
       console.log(`Created ${configPath}`);
       return;
@@ -148,7 +148,7 @@ async function runDoctor(runtimeOptions: RuntimeOptions): Promise<void> {
   const { configPath, config } = await validateRuntimeConfig(runtimeOptions);
   const configIssues = getConfigValidationIssues(config);
 
-  report.push(`TypeBridge doctor`);
+  report.push(`Quill Type doctor`);
   report.push(`- cwd: ${process.cwd()}`);
   report.push(`- node: ${process.version}`);
   report.push(`- config: ${configPath}`);
@@ -424,7 +424,7 @@ function parsePositiveInteger(value: string, flag: string): number {
 }
 
 function printHelp(): void {
-  console.log(`TypeBridge
+  console.log(`Quill Type
 
 Commands:
   init                     Create a sample config file

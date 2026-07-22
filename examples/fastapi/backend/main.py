@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 
-app = FastAPI(title="TypeBridge FastAPI Example", version="1.0.0")
+app = FastAPI(title="Quill Type FastAPI Example", version="1.0.0")
 
 
 class Todo(BaseModel):
@@ -12,7 +12,7 @@ class Todo(BaseModel):
 
 
 TODOS = [
-    Todo(id=1, title="Ship TypeBridge", done=False),
+    Todo(id=1, title="Ship Quill Type", done=False),
     Todo(id=2, title="Document the workflow", done=True),
 ]
 

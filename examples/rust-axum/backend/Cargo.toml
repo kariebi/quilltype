@@ -1,5 +1,5 @@
 [package]
-name = "typebridge-rust-axum-example"
+name = "quilltype-rust-axum-example"
 version = "0.1.0"
 edition = "2021"
 

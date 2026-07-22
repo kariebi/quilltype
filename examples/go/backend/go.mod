@@ -1,3 +1,3 @@
-module typebridge/example-go
+module quilltype/example-go
 
 go 1.22

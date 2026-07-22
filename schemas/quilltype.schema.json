@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typebridge.dev/schemas/typebridge.schema.json",
-  "title": "TypeBridge Config",
+  "$id": "https://quilltype.dev/schemas/quilltype.schema.json",
+  "title": "Quill Type Config",
   "type": "object",
   "additionalProperties": false,
   "required": ["source", "outputs"],

@@ -4,7 +4,7 @@ import YAML from "yaml";
 
 import { AppError } from "./errors.js";
 import { resolveJsonPointer } from "./oas.js";
-import type { SourceConfig, TypeBridgeConfig, WatchPlan } from "./types.js";
+import type { SourceConfig, QuillTypeConfig, WatchPlan } from "./types.js";
 import { isUrl } from "./utils.js";
 
 export interface LoadedDocument {
@@ -14,7 +14,7 @@ export interface LoadedDocument {
 }
 
 export async function loadOpenApiDocument(
-  config: TypeBridgeConfig,
+  config: QuillTypeConfig,
   configPath: string,
   sourceOverride?: SourceConfig,
 ): Promise<LoadedDocument> {
@@ -25,7 +25,7 @@ export async function loadOpenApiDocument(
     const loadContext = await loadDocumentFromFile(sourcePath);
 
     return {
-      sourceLabel: sourcePath,
+      sourceLabel: formatSourceLabel(sourcePath),
       document: loadContext.document,
       watchPlan: {
         localFiles: [configPath, ...loadContext.watchFiles],
@@ -117,6 +117,20 @@ export async function loadDocumentFromSource(
   }
 
   throw new AppError("Comparison source must define either `path` or `url`.", 2);
+}
+
+function formatSourceLabel(sourcePath: string): string {
+  const relativePath = path.relative(process.cwd(), sourcePath);
+
+  if (
+    relativePath.length > 0 &&
+    !relativePath.startsWith("..") &&
+    !path.isAbsolute(relativePath)
+  ) {
+    return relativePath;
+  }
+
+  return sourcePath;
 }
 
 interface LoadedFileContext {

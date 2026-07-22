@@ -1,6 +1,6 @@
 # Rust + Axum Example
 
-This example shows a minimal Axum server that serves an OpenAPI file and a JSON endpoint. Rust works fine for the TypeBridge flow as long as the server exposes a reliable machine-readable contract.
+This example shows a minimal Axum server that serves an OpenAPI file and a JSON endpoint. Rust works fine for the Quill Type flow as long as the server exposes a reliable machine-readable contract.
 
 ## Files
 
@@ -8,7 +8,7 @@ This example shows a minimal Axum server that serves an OpenAPI file and a JSON 
 - `backend/src/main.rs`
 - `backend/openapi.json`
 - `frontend/app.tsx`
-- `typebridge.config.json`
+- `quilltype.config.json`
 
 ## Run The Backend
 
@@ -27,14 +27,14 @@ From the repo root:
 ```bash
 npm install
 npm run build
-node dist/cli.js generate --config ./examples/rust-axum/typebridge.config.json
+node dist/cli.js generate --config ./examples/rust-axum/quilltype.config.json
 ```
 
 ## Validate And Check
 
 ```bash
-node dist/cli.js config validate --config ./examples/rust-axum/typebridge.config.json
-node dist/cli.js check --config ./examples/rust-axum/typebridge.config.json
+node dist/cli.js config validate --config ./examples/rust-axum/quilltype.config.json
+node dist/cli.js check --config ./examples/rust-axum/quilltype.config.json
 ```
 
 ## Frontend Usage

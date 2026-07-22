@@ -3,7 +3,7 @@
 ## Root Fields
 
 - `$schema`
-  Optional path or URL to the TypeBridge config schema.
+  Optional path or URL to the Quill Type config schema.
 - `source`
   The OpenAPI source to read.
 - `outputs`

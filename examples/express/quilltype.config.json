@@ -1,7 +1,7 @@
 {
-  "$schema": "../../schemas/typebridge.schema.json",
+  "$schema": "../../schemas/quilltype.schema.json",
   "source": {
-    "url": "http://127.0.0.1:8010/openapi.json"
+    "url": "http://127.0.0.1:8020/openapi.json"
   },
   "outputs": [
     {
@@ -9,8 +9,8 @@
       "mode": "types"
     },
     {
-      "path": "./frontend/generated/api-react-query.ts",
-      "mode": "react-query"
+      "path": "./frontend/generated/api-client.ts",
+      "mode": "fetch-client"
     }
   ],
   "validation": {
