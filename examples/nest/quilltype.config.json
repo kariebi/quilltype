@@ -1,0 +1,16 @@
+{
+  "$schema": "../../schemas/quilltype.schema.json",
+  "source": {
+    "path": "./backend/openapi.json"
+  },
+  "outputs": [
+    {
+      "path": "./frontend/generated/books.types.ts",
+      "mode": "types"
+    },
+    {
+      "path": "./frontend/generated/books.client.ts",
+      "mode": "axios-client"
+    }
+  ]
+}

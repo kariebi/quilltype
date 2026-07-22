@@ -12,5 +12,8 @@ Available examples:
 
 - [FastAPI](./fastapi/README.md)
 - [Express](./express/README.md)
+- [NestJS](./nest/README.md)
 - [Go](./go/README.md)
 - [Rust + Axum](./rust-axum/README.md)
+- [Remote schema source](./remote-schema/README.md)
+- [Monorepo layout](./monorepo/README.md)

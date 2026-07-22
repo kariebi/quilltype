@@ -1,0 +1,8 @@
+{
+  "name": "quilltype-nest-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node ./src/main.ts"
+  }
+}
