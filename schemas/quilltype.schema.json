@@ -38,6 +38,22 @@
       "properties": {
         "against": {
           "$ref": "#/$defs/source"
+        },
+        "includeWarnings": {
+          "type": "boolean"
+        },
+        "report": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": ["text", "json", "markdown"]
+            },
+            "output": {
+              "type": "string"
+            }
+          }
         }
       }
     },
@@ -94,7 +110,15 @@
         },
         "mode": {
           "type": "string",
-          "enum": ["types", "fetch-client", "react-query"]
+          "enum": [
+            "types",
+            "fetch-client",
+            "react-query",
+            "axios-client",
+            "swr",
+            "zod",
+            "json-schema"
+          ]
         }
       }
     }
