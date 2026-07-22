@@ -1,6 +1,6 @@
 # TypeBridge
 
-[![CI](https://img.shields.io/badge/CI-configure%20repo%20URL-lightgrey)](./.github/workflows/ci.yml)
+[![CI](https://github.com/kariebi/typebridge/actions/workflows/ci.yml/badge.svg)](https://github.com/kariebi/typebridge/actions/workflows/ci.yml)
 
 TypeBridge is an OpenAPI workflow CLI for teams that want more than raw type generation.
 
