@@ -56,6 +56,16 @@ Example:
 }
 ```
 
+Supported modes:
+
+- `types`
+- `fetch-client`
+- `react-query`
+- `axios-client`
+- `swr`
+- `zod`
+- `json-schema`
+
 ## `validation`
 
 - `requireOperationIds`
@@ -67,9 +77,25 @@ Example:
 {
   "against": {
     "path": "./openapi.prev.json"
+  },
+  "includeWarnings": true,
+  "report": {
+    "format": "markdown",
+    "output": "./reports/contract-report.md"
   }
 }
 ```
+
+Fields:
+
+- `against`
+  The previous contract to compare against.
+- `includeWarnings`
+  Whether non-breaking but notable changes should be included.
+- `report.format`
+  `text`, `json`, or `markdown`.
+- `report.output`
+  Optional file path for a saved report.
 
 ## `watch`
 
