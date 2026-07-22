@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schemas/typebridge.schema.json",
+  "source": {
+    "url": "http://127.0.0.1:8020/openapi.json"
+  },
+  "outputs": [
+    {
+      "path": "./frontend/generated/api-types.ts",
+      "mode": "types"
+    },
+    {
+      "path": "./frontend/generated/api-client.ts",
+      "mode": "fetch-client"
+    }
+  ],
+  "validation": {
+    "requireOperationIds": true,
+    "requireResponseSchemas": true
+  },
+  "watch": {
+    "pollIntervalMs": 5000,
+    "retryDelayMs": 1000
+  }
+}
