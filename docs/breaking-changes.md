@@ -13,6 +13,15 @@ Quill Type can compare the current contract against a previous contract and fail
 - request parameters that became required
 - response fields removed from successful responses
 
+## Supported Warnings
+
+Quill Type also reports important non-breaking changes so CI logs and release reviews have more context.
+
+- added paths
+- added operations
+- enum values added to existing schemas
+- operations newly marked as deprecated
+
 ## Config Example
 
 ```json
@@ -23,6 +32,11 @@ Quill Type can compare the current contract against a previous contract and fail
   "breaking": {
     "against": {
       "path": "./openapi.prev.json"
+    },
+    "includeWarnings": true,
+    "report": {
+      "format": "json",
+      "output": "./reports/contract-report.json"
     }
   },
   "outputs": [
@@ -40,8 +54,19 @@ Quill Type can compare the current contract against a previous contract and fail
 node dist/cli.js check \
   --input ./openapi.next.json \
   --against ./openapi.prev.json \
+  --report-format markdown \
+  --report-file ./reports/contract-report.md \
   --output ./src/generated/api-types.ts:types
 ```
+
+## Report Formats
+
+- `text`
+  Good for local terminal output and basic CI logs.
+- `json`
+  Good for machine-readable post-processing.
+- `markdown`
+  Good for artifacts, release notes, or pull request summaries.
 
 ## Recommended Usage
 
