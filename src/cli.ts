@@ -2,20 +2,32 @@
 
 import { access } from "node:fs/promises";
 import path from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
 
 import {
   ensureWritableFileTarget,
   getConfigValidationIssues,
+  isSupportedReportFormat,
   isSupportedOutputMode,
   parseOutputArgument,
   validateRuntimeConfig,
   writeSampleConfig,
 } from "./config.js";
-import { assertNoBreakingChanges, detectBreakingChanges, formatBreakingChanges } from "./diff.js";
+import {
+  type ContractChange,
+  detectContractChanges,
+  formatContractChanges,
+} from "./diff.js";
 import { AppError } from "./errors.js";
 import { generateOutputs } from "./generator.js";
 import { loadDocumentFromSource, loadOpenApiDocument } from "./openapi.js";
-import type { OutputConfig, OutputMode, RuntimeOptions, SourceConfig } from "./types.js";
+import type {
+  ContractReportFormat,
+  OutputConfig,
+  OutputMode,
+  RuntimeOptions,
+  SourceConfig,
+} from "./types.js";
 import { validateOpenApiDocument } from "./validate.js";
 import { runWatchMode } from "./watch.js";
 
@@ -48,6 +60,13 @@ async function main(): Promise<void> {
     case "check": {
       const result = await runGenerate(runtimeOptions, true);
       const staleOutputs = result.results.filter((item) => item.changed);
+      const breakingIssues = result.contractChanges.filter((change) => change.severity === "error");
+      const warningIssues = result.contractChanges.filter((change) => change.severity === "warning");
+      const reportOptions = resolveReportOptions(parsed.options, result.config);
+
+      if (reportOptions && result.contractChanges.length > 0) {
+        await writeContractReport(result.configPath, reportOptions, result.contractChanges);
+      }
 
       if (staleOutputs.length > 0) {
         throw new AppError(
@@ -56,11 +75,15 @@ async function main(): Promise<void> {
         );
       }
 
-      if (result.breakingIssues.length > 0) {
-        throw new AppError(formatBreakingChanges(result.breakingIssues), 2);
+      if (breakingIssues.length > 0) {
+        throw new AppError(formatContractChanges(result.contractChanges, "text"), 2);
       }
 
-      console.log("All generated outputs are up to date.");
+      if (warningIssues.length > 0) {
+        console.log(formatContractChanges(result.contractChanges, "text"));
+      } else {
+        console.log("All generated outputs are up to date.");
+      }
       return;
     }
 
@@ -73,7 +96,7 @@ async function main(): Promise<void> {
           const result = await runGenerate(runtimeOptions, false);
           return {
             plan: result.watchPlan,
-            summary: summarizeGeneration(result.results, result.breakingIssues),
+            summary: summarizeGeneration(result.results, result.contractChanges),
           };
         },
         getFallbackPlan: async () =>
@@ -128,7 +151,7 @@ async function runGenerate(runtimeOptions: RuntimeOptions, check: boolean) {
 
   const breakingIssues =
     config.breaking?.against
-      ? detectBreakingChanges(
+      ? detectContractChanges(
           await loadDocumentFromSource(config.breaking.against, configPath),
           loaded.document,
         )
@@ -139,7 +162,10 @@ async function runGenerate(runtimeOptions: RuntimeOptions, check: boolean) {
     config,
     results,
     watchPlan: loaded.watchPlan,
-    breakingIssues,
+    contractChanges:
+      config.breaking?.includeWarnings === false
+        ? breakingIssues.filter((issue) => issue.severity === "error")
+        : breakingIssues,
   };
 }
 
@@ -161,6 +187,7 @@ async function runDoctor(runtimeOptions: RuntimeOptions): Promise<void> {
   report.push(
     `- watch: pollIntervalMs=${config.watch?.pollIntervalMs ?? 30000}, retryDelayMs=${config.watch?.retryDelayMs ?? 5000}`,
   );
+  report.push(`- outputs count: ${config.outputs.length}`);
 
   if (config.breaking?.against) {
     report.push(
@@ -168,6 +195,16 @@ async function runDoctor(runtimeOptions: RuntimeOptions): Promise<void> {
         config.breaking.against.path
           ? `file ${config.breaking.against.path}`
           : `url ${config.breaking.against.url}`
+      }`,
+    );
+    report.push(`- breaking warnings: ${config.breaking.includeWarnings === false ? "disabled" : "enabled"}`);
+    report.push(
+      `- breaking report: ${
+        config.breaking.report?.output
+          ? `${config.breaking.report.format ?? "text"} -> ${config.breaking.report.output}`
+          : config.breaking.report?.format
+            ? `${config.breaking.report.format} (stdout only)`
+            : "disabled"
       }`,
     );
   }
@@ -183,6 +220,9 @@ async function runDoctor(runtimeOptions: RuntimeOptions): Promise<void> {
         loaded.watchPlan.remote ? "1 remote" : "0 remote"
       }`,
     );
+    report.push(
+      `- writable outputs: ${config.outputs.every((output) => Boolean(output.path)) ? "configured" : "missing"}`,
+    );
   }
 
   console.log(report.join("\n"));
@@ -190,15 +230,17 @@ async function runDoctor(runtimeOptions: RuntimeOptions): Promise<void> {
 
 function summarizeGeneration(
   results: Array<{ changed: boolean; outputPath: string; mode: OutputMode }>,
-  breakingIssues: Array<{ code: string; message: string }>,
+  contractChanges: ContractChange[],
 ): string {
+  const errorCount = contractChanges.filter((change) => change.severity === "error").length;
+  const warningCount = contractChanges.filter((change) => change.severity === "warning").length;
   const lines = [
     `Regeneration summary (${new Date().toISOString()}):`,
     ...results.map((result) => `- ${result.changed ? "updated" : "unchanged"} ${result.outputPath} (${result.mode})`),
   ];
 
-  if (breakingIssues.length > 0) {
-    lines.push(`- breaking issues: ${breakingIssues.length}`);
+  if (contractChanges.length > 0) {
+    lines.push(`- contract changes: ${contractChanges.length} total, ${errorCount} errors, ${warningCount} warnings`);
   }
 
   return lines.join("\n");
@@ -243,6 +285,8 @@ interface ParsedArgs {
     retryDelayMs?: number;
     against?: string;
     againstUrl?: string;
+    reportFormat?: string;
+    reportFile?: string;
   };
 }
 
@@ -310,6 +354,14 @@ function parseArgs(args: string[]): ParsedArgs {
         options.againstUrl = requireValue(current, next);
         cursor += 1;
         break;
+      case "--report-format":
+        options.reportFormat = requireValue(current, next);
+        cursor += 1;
+        break;
+      case "--report-file":
+        options.reportFile = requireValue(current, next);
+        cursor += 1;
+        break;
       default:
         throw new AppError(`Unknown option: ${current}`, 2);
     }
@@ -362,7 +414,7 @@ function buildOutputsOverride(values: string[], mode?: string): OutputConfig[] |
   if (mode !== undefined) {
     if (!isSupportedOutputMode(mode)) {
       throw new AppError(
-        `Unsupported mode ${mode}. Expected one of: types, fetch-client, react-query.`,
+        `Unsupported mode ${mode}. Expected one of: types, fetch-client, react-query, axios-client, swr, zod, json-schema.`,
         2,
       );
     }
@@ -442,10 +494,54 @@ Flags-first shortcuts:
   --against <file>         Compare against a previous local OpenAPI document
   --against-url <url>      Compare against a previous remote OpenAPI document
   --header <KEY=VALUE>     Add a source request header. Repeat as needed.
+  --report-format <fmt>    Write contract diff output as text, json, or markdown
+  --report-file <path>     Write the contract diff report to a file
   --poll-interval <ms>     Remote watch polling interval
   --retry-delay <ms>       Remote watch retry delay
   --config <path>          Use a specific config file
 `);
+}
+
+function resolveReportOptions(
+  options: ParsedArgs["options"],
+  config: Awaited<ReturnType<typeof validateRuntimeConfig>>["config"],
+): { format: ContractReportFormat; output?: string } | null {
+  const format = options.reportFormat ?? config.breaking?.report?.format;
+  const output = options.reportFile ?? config.breaking?.report?.output;
+
+  if (!format && !output) {
+    return null;
+  }
+
+  if (format && !isSupportedReportFormat(format)) {
+    throw new AppError(
+      `Unsupported report format ${format}. Expected one of: text, json, markdown.`,
+      2,
+    );
+  }
+
+  return {
+    format: (format ?? "text") as ContractReportFormat,
+    output,
+  };
+}
+
+async function writeContractReport(
+  configPath: string,
+  options: { format: ContractReportFormat; output?: string },
+  changes: ContractChange[],
+): Promise<void> {
+  const content = formatContractChanges(changes, options.format);
+
+  if (!options.output) {
+    console.log(content);
+    return;
+  }
+
+  const outputPath = path.resolve(path.dirname(configPath), options.output);
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, `${content}\n`, "utf8");
+  console.log(`Wrote contract report to ${outputPath} (${options.format})`);
 }
 
 function printError(error: unknown): void {
