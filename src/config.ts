@@ -3,7 +3,14 @@ import path from "node:path";
 import YAML from "yaml";
 
 import { AppError } from "./errors.js";
-import type { OutputConfig, OutputMode, RuntimeOptions, SourceConfig, QuillTypeConfig } from "./types.js";
+import type {
+  ContractReportFormat,
+  OutputConfig,
+  OutputMode,
+  RuntimeOptions,
+  SourceConfig,
+  QuillTypeConfig,
+} from "./types.js";
 import { deepReplaceEnvPlaceholders, isUrl } from "./utils.js";
 
 const DEFAULT_CONFIG_FILES = [
@@ -37,6 +44,15 @@ export function createDefaultConfig(): QuillTypeConfig {
     validation: {
       requireOperationIds: true,
       requireResponseSchemas: true,
+    },
+    breaking: {
+      against: {
+        path: "./examples/petstore.openapi.json",
+      },
+      includeWarnings: true,
+      report: {
+        format: "text",
+      },
     },
     watch: {
       pollIntervalMs: 30000,
@@ -149,6 +165,7 @@ export function buildConfigFromFlags(options: RuntimeOptions): QuillTypeConfig {
   if (options.againstOverride) {
     config.breaking = {
       against: options.againstOverride,
+      includeWarnings: true,
     };
   }
 
@@ -183,6 +200,8 @@ export function mergeRuntimeOptions(
   if (options.againstOverride && (options.againstOverride.path || options.againstOverride.url)) {
     nextConfig.breaking = {
       against: options.againstOverride,
+      includeWarnings: nextConfig.breaking?.includeWarnings ?? true,
+      report: nextConfig.breaking?.report,
     };
   }
 
@@ -260,6 +279,33 @@ export function getConfigValidationIssues(input: unknown): string[] {
       issues.push("`breaking.against` is required when `breaking` is provided.");
     } else {
       validateSource(config.breaking.against, "breaking.against", issues);
+
+      if (
+        config.breaking.includeWarnings !== undefined &&
+        typeof config.breaking.includeWarnings !== "boolean"
+      ) {
+        issues.push("`breaking.includeWarnings` must be a boolean when provided.");
+      }
+
+      if (config.breaking.report !== undefined) {
+        if (!config.breaking.report || typeof config.breaking.report !== "object") {
+          issues.push("`breaking.report` must be an object when provided.");
+        } else {
+          if (
+            config.breaking.report.format !== undefined &&
+            !isSupportedReportFormat(config.breaking.report.format)
+          ) {
+            issues.push("`breaking.report.format` must be one of: text, json, markdown.");
+          }
+
+          if (
+            config.breaking.report.output !== undefined &&
+            typeof config.breaking.report.output !== "string"
+          ) {
+            issues.push("`breaking.report.output` must be a string when provided.");
+          }
+        }
+      }
     }
   }
 
@@ -308,7 +354,19 @@ export function parseOutputArgument(value: string, modeFallback?: OutputMode): O
 }
 
 export function isSupportedOutputMode(value: string): value is OutputMode {
-  return value === "types" || value === "fetch-client" || value === "react-query";
+  return (
+    value === "types" ||
+    value === "fetch-client" ||
+    value === "react-query" ||
+    value === "axios-client" ||
+    value === "swr" ||
+    value === "zod" ||
+    value === "json-schema"
+  );
+}
+
+export function isSupportedReportFormat(value: string): value is ContractReportFormat {
+  return value === "text" || value === "json" || value === "markdown";
 }
 
 function parseStructuredText(raw: string, filename: string): unknown {
@@ -387,7 +445,7 @@ function validateOutput(output: unknown, context: string, issues: string[]): voi
     issues.push(`\`${context}.mode\` must be a string.`);
   } else if (!isSupportedOutputMode(typedOutput.mode)) {
     issues.push(
-      `\`${context}.mode\` must be one of: types, fetch-client, react-query.`,
+      `\`${context}.mode\` must be one of: types, fetch-client, react-query, axios-client, swr, zod, json-schema.`,
     );
   }
 }
