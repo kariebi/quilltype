@@ -3,7 +3,7 @@ import path from "node:path";
 
 import openapiTS, { astToString } from "openapi-typescript";
 
-import { getOperations } from "./oas.js";
+import { asObject, getOperations, getSuccessResponseCodes, resolveRef } from "./oas.js";
 import type { GenerateResult, OutputConfig, QuillTypeConfig } from "./types.js";
 import { quote, toCamelCase, toPascalCase } from "./utils.js";
 
@@ -55,6 +55,14 @@ function renderOutput(
       return withBanner(renderFetchClient(typeSource, document), sourceLabel, output.mode);
     case "react-query":
       return withBanner(renderReactQueryClient(typeSource, document), sourceLabel, output.mode);
+    case "axios-client":
+      return withBanner(renderAxiosClient(typeSource, document), sourceLabel, output.mode);
+    case "swr":
+      return withBanner(renderSwrClient(typeSource, document), sourceLabel, output.mode);
+    case "zod":
+      return withBanner(renderZodSchemas(typeSource, document), sourceLabel, output.mode);
+    case "json-schema":
+      return renderJsonSchemaBundle(document, sourceLabel, output.mode);
   }
 }
 
@@ -74,34 +82,24 @@ function withBanner(content: string, sourceLabel: string, mode: OutputConfig["mo
 
 function renderFetchClient(typeSource: string, document: Record<string, unknown>): string {
   const operations = getOperations(document);
-  const functions = operations
-    .map((operation) => {
-      const functionName = toCamelCase(operation.operationId);
-      return [
-        `export async function ${functionName}(client: QuillTypeClient, args: RequestArgs<${quote(operation.operationId)}> = {}): Promise<SuccessResponse<${quote(operation.operationId)}>> {`,
-        `  return request(client, ${quote(operation.method.toUpperCase())}, ${quote(operation.route)}, args);`,
-        `}`,
-      ].join("\n");
-    })
-    .join("\n\n");
+  const functions = operations.map((operation) =>
+    renderRequestFunction(
+      toCamelCase(operation.operationId),
+      operation.operationId,
+      operation.method.toUpperCase(),
+      operation.route,
+    ),
+  );
 
-  return `${typeSource}
-
-${renderRuntimeHelpers()}
-
-${functions}
-`;
+  return [typeSource, renderFetchRuntimeHelpers(), ...functions].join("\n\n").trim();
 }
 
 function renderReactQueryClient(typeSource: string, document: Record<string, unknown>): string {
   const operations = getOperations(document);
   const lines: string[] = [
     typeSource,
-    "",
     'import { queryOptions, useMutation, useQuery, type UseMutationOptions, type UseQueryOptions } from "@tanstack/react-query";',
-    "",
-    renderRuntimeHelpers(),
-    "",
+    renderFetchRuntimeHelpers(),
   ];
 
   for (const operation of operations) {
@@ -109,20 +107,21 @@ function renderReactQueryClient(typeSource: string, document: Record<string, unk
     const hookName = `use${toPascalCase(operation.operationId)}`;
     const queryKeyName = `${functionName}QueryKey`;
     const requestFnName = `${functionName}Request`;
-    const requestLine = [
-      `export async function ${requestFnName}(client: QuillTypeClient, args: RequestArgs<${quote(operation.operationId)}> = {}): Promise<SuccessResponse<${quote(operation.operationId)}>> {`,
-      `  return request(client, ${quote(operation.method.toUpperCase())}, ${quote(operation.route)}, args);`,
-      `}`,
-    ].join("\n");
 
-    lines.push(requestLine, "");
+    lines.push(
+      renderRequestFunction(
+        requestFnName,
+        operation.operationId,
+        operation.method.toUpperCase(),
+        operation.route,
+      ),
+    );
 
     if (operation.method === "get" || operation.method === "head") {
       lines.push(
         `export const ${queryKeyName} = (args: RequestArgs<${quote(operation.operationId)}> = {}) => [${quote(
           functionName,
         )}, stableValue(args.path), stableValue(args.query), stableValue(args.body)] as const;`,
-        "",
         `export function ${functionName}QueryOptions(client: QuillTypeClient, args: RequestArgs<${quote(
           operation.operationId,
         )}> = {}, options: Omit<UseQueryOptions<SuccessResponse<${quote(
@@ -134,7 +133,6 @@ function renderReactQueryClient(typeSource: string, document: Record<string, unk
         `    ...options,`,
         `  });`,
         `}`,
-        "",
         `export function ${hookName}Query(client: QuillTypeClient, args: RequestArgs<${quote(
           operation.operationId,
         )}> = {}, options: Omit<UseQueryOptions<SuccessResponse<${quote(
@@ -142,7 +140,6 @@ function renderReactQueryClient(typeSource: string, document: Record<string, unk
         )}>, Error>, "queryKey" | "queryFn"> = {}) {`,
         `  return useQuery(${functionName}QueryOptions(client, args, options));`,
         `}`,
-        "",
       );
     } else {
       lines.push(
@@ -154,15 +151,176 @@ function renderReactQueryClient(typeSource: string, document: Record<string, unk
         `    ...options,`,
         `  });`,
         `}`,
-        "",
       );
     }
   }
 
+  return lines.join("\n\n").trim();
+}
+
+function renderAxiosClient(typeSource: string, document: Record<string, unknown>): string {
+  const operations = getOperations(document);
+  const functions = operations.map((operation) =>
+    [
+      `export async function ${toCamelCase(operation.operationId)}(client: QuillTypeAxiosClient, args: RequestArgs<${quote(
+        operation.operationId,
+      )}> = {}): Promise<SuccessResponse<${quote(operation.operationId)}>> {`,
+      `  return request(client, ${quote(operation.method.toUpperCase())}, ${quote(operation.route)}, args);`,
+      `}`,
+    ].join("\n"),
+  );
+
+  return [typeSource, renderAxiosRuntimeHelpers(), ...functions].join("\n\n").trim();
+}
+
+function renderSwrClient(typeSource: string, document: Record<string, unknown>): string {
+  const operations = getOperations(document);
+  const lines: string[] = [
+    typeSource,
+    'import useSWR, { type SWRConfiguration } from "swr";',
+    'import useSWRMutation, { type SWRMutationConfiguration } from "swr/mutation";',
+    renderFetchRuntimeHelpers(),
+  ];
+
+  for (const operation of operations) {
+    const functionName = toCamelCase(operation.operationId);
+    const hookName = `use${toPascalCase(operation.operationId)}`;
+    const requestFnName = `${functionName}Request`;
+    const keyName = `${functionName}Key`;
+
+    lines.push(
+      renderRequestFunction(
+        requestFnName,
+        operation.operationId,
+        operation.method.toUpperCase(),
+        operation.route,
+      ),
+    );
+
+    if (operation.method === "get" || operation.method === "head") {
+      lines.push(
+        `export const ${keyName} = (args: RequestArgs<${quote(operation.operationId)}> = {}) => [${quote(
+          functionName,
+        )}, stableValue(args.path), stableValue(args.query), stableValue(args.body)] as const;`,
+        `export function ${hookName}(client: QuillTypeClient, args: RequestArgs<${quote(
+          operation.operationId,
+        )}> = {}, config: SWRConfiguration<SuccessResponse<${quote(operation.operationId)}>, Error> = {}) {`,
+        `  return useSWR(${keyName}(args), () => ${requestFnName}(client, args), config);`,
+        `}`,
+      );
+    } else {
+      lines.push(
+        `export function ${hookName}(client: QuillTypeClient, config: SWRMutationConfiguration<SuccessResponse<${quote(
+          operation.operationId,
+        )}>, Error, readonly [string], RequestArgs<${quote(operation.operationId)}>> = {}) {`,
+        `  return useSWRMutation([${quote(functionName)}] as const, async (_key, { arg }) => ${requestFnName}(client, arg), config);`,
+        `}`,
+      );
+    }
+  }
+
+  return lines.join("\n\n").trim();
+}
+
+function renderZodSchemas(typeSource: string, document: Record<string, unknown>): string {
+  const components = asObject(asObject(document.components)?.schemas) ?? {};
+  const operations = getOperations(document);
+  const lines = [typeSource, 'import { z } from "zod";'];
+
+  if (Object.keys(components).length === 0) {
+    lines.push("export const componentSchemas = {} as const;");
+  } else {
+    lines.push("export const componentSchemas = {");
+
+    for (const name of Object.keys(components).sort()) {
+      const expression = indent(renderZodSchema(document, components[name], true), 2);
+      lines.push(`  [${quote(name)}]: ${expression.startsWith("\n") ? expression.trimStart() : expression},`);
+    }
+
+    lines.push("} as const;");
+  }
+
+  lines.push("export const operationSchemas = {");
+
+  for (const operation of operations) {
+    const requestSchema = findOperationRequestSchema(document, operation.operation);
+    const responseSchemas = getSuccessResponseCodes(operation.operation);
+    lines.push(`  [${quote(operation.operationId)}]: {`);
+    lines.push(
+      `    request: ${indent(renderZodSchema(document, requestSchema ?? null, true), 4).trimStart()},`,
+    );
+    lines.push("    responses: {");
+
+    if (responseSchemas.length === 0) {
+      lines.push("      default: z.void(),");
+    } else {
+      for (const statusCode of responseSchemas) {
+        const responseSchema = findOperationResponseSchema(document, operation.operation, statusCode);
+        lines.push(
+          `      [${quote(statusCode)}]: ${indent(renderZodSchema(document, responseSchema ?? null, true), 6).trimStart()},`,
+        );
+      }
+    }
+
+    lines.push("    },");
+    lines.push("  },");
+  }
+
+  lines.push("} as const;");
   return lines.join("\n").trim();
 }
 
-function renderRuntimeHelpers(): string {
+function renderJsonSchemaBundle(
+  document: Record<string, unknown>,
+  sourceLabel: string,
+  mode: OutputConfig["mode"],
+): string {
+  const components = asObject(asObject(document.components)?.schemas) ?? {};
+  const operations = getOperations(document);
+  const bundle = {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: "https://quilltype.dev/generated/json-schema-bundle.json",
+    $comment: `Generated by Quill Type. Source: ${sourceLabel}. Output mode: ${mode}. Do not edit this file directly.`,
+    components: {
+      schemas: structuredClone(components),
+    },
+    operations: Object.fromEntries(
+      operations.map((operation) => [
+        operation.operationId,
+        {
+          method: operation.method.toUpperCase(),
+          route: operation.route,
+          request: structuredClone(findOperationRequestSchema(document, operation.operation)),
+          responses: Object.fromEntries(
+            getSuccessResponseCodes(operation.operation).map((statusCode) => [
+              statusCode,
+              structuredClone(findOperationResponseSchema(document, operation.operation, statusCode)),
+            ]),
+          ),
+        },
+      ]),
+    ),
+  };
+
+  return `${JSON.stringify(bundle, null, 2)}\n`;
+}
+
+function renderRequestFunction(
+  functionName: string,
+  operationId: string,
+  method: string,
+  route: string,
+): string {
+  return [
+    `export async function ${functionName}(client: QuillTypeClient, args: RequestArgs<${quote(
+      operationId,
+    )}> = {}): Promise<SuccessResponse<${quote(operationId)}>> {`,
+    `  return request(client, ${quote(method)}, ${quote(route)}, args);`,
+    `}`,
+  ].join("\n");
+}
+
+function renderFetchRuntimeHelpers(): string {
   return `
 export interface QuillTypeClient {
   baseUrl?: string;
@@ -308,6 +466,274 @@ async function request<Id extends OperationId>(
   return (await response.json()) as SuccessResponse<Id>;
 }
 `.trim();
+}
+
+function renderAxiosRuntimeHelpers(): string {
+  return `
+import type { AxiosInstance, AxiosRequestConfig } from "axios";
+
+export interface QuillTypeAxiosClient {
+  axios: AxiosInstance;
+  baseUrl?: string;
+  headers?: Record<string, string>;
+}
+
+type OperationId = keyof operations;
+type OperationById<Id extends OperationId> = operations[Id];
+type ParametersOf<T> = T extends { parameters: infer Parameters } ? Parameters : never;
+type MaybeValue<T> = [T] extends [never] ? undefined : T;
+type PathParams<T> = ParametersOf<T> extends { path?: infer Path } ? Path : never;
+type QueryParams<T> = ParametersOf<T> extends { query?: infer Query } ? Query : never;
+type HeaderParams<T> = ParametersOf<T> extends { header?: infer Header } ? Header : never;
+type CookieParams<T> = ParametersOf<T> extends { cookie?: infer Cookie } ? Cookie : never;
+type RequestBodyContent<T> = T extends { requestBody?: { content: infer Content } }
+  ? Content
+  : T extends { requestBody: { content: infer Content } }
+    ? Content
+    : never;
+type RequestBody<T> = RequestBodyContent<T> extends never
+  ? never
+  : "application/json" extends keyof RequestBodyContent<T>
+    ? RequestBodyContent<T>["application/json"]
+    : RequestBodyContent<T>[keyof RequestBodyContent<T>];
+type ResponseContent<T> = T extends { content: infer Content }
+  ? "application/json" extends keyof Content
+    ? Content["application/json"]
+    : Content[keyof Content]
+  : void;
+type SuccessResponse<T extends OperationId> = OperationById<T> extends { responses: infer Responses }
+  ? {
+      [Key in keyof Responses]: Key extends 200 | 201 | 202 | 203 | 204 | 205 | 206
+        ? ResponseContent<Responses[Key]>
+        : Key extends \`2\${number}\${number}\`
+          ? ResponseContent<Responses[Key]>
+          : never;
+    }[keyof Responses]
+  : never;
+
+export type RequestArgs<Id extends OperationId> = {
+  path?: MaybeValue<PathParams<OperationById<Id>>>;
+  query?: MaybeValue<QueryParams<OperationById<Id>>>;
+  header?: MaybeValue<HeaderParams<OperationById<Id>>>;
+  cookie?: MaybeValue<CookieParams<OperationById<Id>>>;
+  body?: MaybeValue<RequestBody<OperationById<Id>>>;
+  init?: Omit<AxiosRequestConfig, "method" | "url" | "headers" | "params" | "data">;
+};
+
+function buildUrl(route: string, args: RequestArgs<OperationId>): string {
+  const pathParams = (args.path ?? {}) as Record<string, unknown>;
+  return route.replace(/\\{([^}]+)\\}/g, (_, segment: string) => {
+    const value = pathParams[segment];
+
+    if (value === undefined || value === null) {
+      throw new Error(\`Missing path parameter: \${segment}\`);
+    }
+
+    return encodeURIComponent(String(value));
+  });
+}
+
+async function request<Id extends OperationId>(
+  client: QuillTypeAxiosClient,
+  method: string,
+  route: string,
+  args: RequestArgs<Id>,
+): Promise<SuccessResponse<Id>> {
+  const baseUrl = client.baseUrl?.replace(/\\/$/, "") ?? "";
+  const response = await client.axios.request({
+    ...(args.init ?? {}),
+    method,
+    url: \`\${baseUrl}\${buildUrl(route, args as unknown as RequestArgs<OperationId>)}\`,
+    params: args.query,
+    headers: {
+      ...(client.headers ?? {}),
+      ...((args.header as Record<string, string> | undefined) ?? {}),
+    },
+    data: args.body,
+  });
+
+  return response.data as SuccessResponse<Id>;
+}
+`.trim();
+}
+
+function renderZodSchema(
+  document: Record<string, unknown>,
+  schemaLike: unknown,
+  wrapRefsInLazy: boolean,
+): string {
+  if (!schemaLike) {
+    return "z.void()";
+  }
+
+  const schema = asObject(schemaLike);
+
+  if (!schema) {
+    return "z.any()";
+  }
+
+  if (typeof schema.$ref === "string") {
+    const componentName = getComponentRefName(schema.$ref);
+
+    if (componentName) {
+      return wrapRefsInLazy
+        ? `z.lazy(() => componentSchemas[${quote(componentName)}])`
+        : `componentSchemas[${quote(componentName)}]`;
+    }
+
+    const resolved = resolveRef(document, schema);
+    return resolved === schema ? "z.any()" : renderZodSchema(document, resolved, wrapRefsInLazy);
+  }
+
+  if (schema.const !== undefined) {
+    return applyNullable(`z.literal(${quoteLiteral(schema.const)})`, schema);
+  }
+
+  if (Array.isArray(schema.enum) && schema.enum.length > 0) {
+    const values = schema.enum as unknown[];
+    const base =
+      values.every((value) => typeof value === "string")
+        ? `z.enum([${values.map((value) => quote(String(value))).join(", ")}] as const)`
+        : `z.union([${values.map((value) => `z.literal(${quoteLiteral(value)})`).join(", ")}])`;
+    return applyNullable(base, schema);
+  }
+
+  if (Array.isArray(schema.oneOf) && schema.oneOf.length > 0) {
+    return applyNullable(
+      `z.union([${schema.oneOf.map((item) => renderZodSchema(document, item, true)).join(", ")}])`,
+      schema,
+    );
+  }
+
+  if (Array.isArray(schema.anyOf) && schema.anyOf.length > 0) {
+    return applyNullable(
+      `z.union([${schema.anyOf.map((item) => renderZodSchema(document, item, true)).join(", ")}])`,
+      schema,
+    );
+  }
+
+  if (Array.isArray(schema.allOf) && schema.allOf.length > 0) {
+    const rendered = schema.allOf.map((item) => renderZodSchema(document, item, true));
+    const [first = "z.any()", ...rest] = rendered;
+    return applyNullable(rest.reduce((current, item) => `z.intersection(${current}, ${item})`, first), schema);
+  }
+
+  if (schema.type === "array") {
+    return applyNullable(
+      `z.array(${renderZodSchema(document, asObject(schema.items) ?? schema.items, true)})`,
+      schema,
+    );
+  }
+
+  if (schema.type === "object" || schema.properties || schema.additionalProperties) {
+    const properties = asObject(schema.properties) ?? {};
+    const required = new Set(
+      Array.isArray(schema.required) ? schema.required.filter((value): value is string => typeof value === "string") : [],
+    );
+    const entries = Object.keys(properties).sort().map((name) => {
+      const rendered = renderZodSchema(document, properties[name], true);
+      return `  ${JSON.stringify(name)}: ${required.has(name) ? rendered : `${rendered}.optional()`},`;
+    });
+
+    let base = entries.length > 0 ? `z.object({\n${entries.join("\n")}\n})` : "z.object({})";
+
+    if (schema.additionalProperties === true) {
+      base = `${base}.catchall(z.any())`;
+    } else if (schema.additionalProperties && typeof schema.additionalProperties === "object") {
+      base = `${base}.catchall(${renderZodSchema(document, schema.additionalProperties, true)})`;
+    }
+
+    return applyNullable(base, schema);
+  }
+
+  if (schema.type === "integer") {
+    return applyNullable("z.number().int()", schema);
+  }
+
+  if (schema.type === "number") {
+    return applyNullable("z.number()", schema);
+  }
+
+  if (schema.type === "boolean") {
+    return applyNullable("z.boolean()", schema);
+  }
+
+  if (schema.type === "string") {
+    let base = "z.string()";
+
+    if (schema.format === "date-time") {
+      base = `${base}.datetime()`;
+    } else if (schema.format === "uuid") {
+      base = `${base}.uuid()`;
+    } else if (schema.format === "email") {
+      base = `${base}.email()`;
+    } else if (schema.format === "uri") {
+      base = `${base}.url()`;
+    }
+
+    return applyNullable(base, schema);
+  }
+
+  return "z.any()";
+}
+
+function findOperationRequestSchema(
+  document: Record<string, unknown>,
+  operation: Record<string, unknown>,
+): unknown {
+  const requestBody = asObject(resolveRef(document, operation.requestBody));
+  const content = asObject(requestBody?.content) ?? {};
+
+  for (const mediaType of Object.values(content)) {
+    const mediaTypeObject = asObject(resolveRef(document, mediaType));
+
+    if (mediaTypeObject?.schema) {
+      return mediaTypeObject.schema;
+    }
+  }
+
+  return null;
+}
+
+function findOperationResponseSchema(
+  document: Record<string, unknown>,
+  operation: Record<string, unknown>,
+  statusCode: string,
+): unknown {
+  const responses = asObject(operation.responses) ?? {};
+  const response = asObject(resolveRef(document, responses[statusCode]));
+  const content = asObject(response?.content) ?? {};
+
+  for (const mediaType of Object.values(content)) {
+    const mediaTypeObject = asObject(resolveRef(document, mediaType));
+
+    if (mediaTypeObject?.schema) {
+      return mediaTypeObject.schema;
+    }
+  }
+
+  return null;
+}
+
+function getComponentRefName(ref: string): string | null {
+  const match = /^#\/components\/schemas\/(.+)$/.exec(ref);
+  return match?.[1] ?? null;
+}
+
+function applyNullable(base: string, schema: Record<string, unknown>): string {
+  return schema.nullable === true ? `${base}.nullable()` : base;
+}
+
+function quoteLiteral(value: unknown): string {
+  return JSON.stringify(value);
+}
+
+function indent(value: string, spaces: number): string {
+  const prefix = " ".repeat(spaces);
+  return value
+    .split("\n")
+    .map((line) => `${prefix}${line}`)
+    .join("\n");
 }
 
 async function writeIfNeeded(
