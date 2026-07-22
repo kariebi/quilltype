@@ -1,0 +1,50 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TypeBridge Go Example",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/releases": {
+      "get": {
+        "operationId": "listReleases",
+        "summary": "List releases",
+        "responses": {
+          "200": {
+            "description": "A list of releases",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Release"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Release": {
+        "type": "object",
+        "required": ["id", "version", "channel"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string",
+            "enum": ["alpha", "beta", "stable"]
+          }
+        }
+      }
+    }
+  }
+}
