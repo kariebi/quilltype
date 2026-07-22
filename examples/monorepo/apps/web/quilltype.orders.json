@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../../schemas/quilltype.schema.json",
+  "source": {
+    "path": "../../services/orders/openapi.json"
+  },
+  "outputs": [
+    {
+      "path": "./generated/orders.client.ts",
+      "mode": "fetch-client"
+    },
+    {
+      "path": "./generated/orders.schemas.ts",
+      "mode": "zod"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../schemas/quilltype.schema.json",
+  "source": {
+    "path": "../../services/catalog/openapi.json"
+  },
+  "outputs": [
+    {
+      "path": "./generated/catalog.client.ts",
+      "mode": "fetch-client"
+    }
+  ]
+}
