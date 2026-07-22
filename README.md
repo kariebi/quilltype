@@ -1,6 +1,14 @@
 # Quill Type
 
 [![CI](https://github.com/kariebi/quilltype/actions/workflows/ci.yml/badge.svg)](https://github.com/kariebi/quilltype/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/quilltype?color=cb3837&label=npm)](https://www.npmjs.com/package/quilltype)
+[![npm downloads](https://img.shields.io/npm/dm/quilltype?color=8a2be2&label=downloads)](https://www.npmjs.com/package/quilltype)
+[![GitHub release](https://img.shields.io/github/v/release/kariebi/quilltype?display_name=tag&label=release&color=1f6feb)](https://github.com/kariebi/quilltype/releases)
+[![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6)](https://www.typescriptlang.org/)
+[![OpenAPI 3.x](https://img.shields.io/badge/OpenAPI-3.x-6ba539)](https://spec.openapis.org/oas/latest.html)
+[![ESM](https://img.shields.io/badge/module-ESM-f7df1e?logo=javascript&logoColor=000)](https://nodejs.org/api/esm.html)
+[![Node >=20](https://img.shields.io/badge/node-%3E%3D20-339933)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0f766e.svg)](./LICENSE)
 
 Quill Type is an OpenAPI workflow CLI for teams that want more than raw type generation.
 
