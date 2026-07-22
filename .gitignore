@@ -34,5 +34,5 @@ yarn-error.log*
 dist
 *.tgz
 
-# plannig checklist
+# private planning checklist
 PRODUCT-CHECKLIST.md

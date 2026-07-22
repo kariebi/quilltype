@@ -1,13 +1,13 @@
 {
   "name": "quilltype",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An OpenAPI workflow CLI for validation, generation, breaking-change checks, and frontend contract sync.",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kariebi/quilltype.git"
   },
-  "homepage": "https://github.com/kariebi/quilltype#readme",
+  "homepage": "https://www.npmjs.com/package/quilltype",
   "bugs": {
     "url": "https://github.com/kariebi/quilltype/issues"
   },
