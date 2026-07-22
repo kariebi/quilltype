@@ -1,0 +1,50 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TypeBridge Rust Axum Example",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/deployments": {
+      "get": {
+        "operationId": "listDeployments",
+        "summary": "List deployments",
+        "responses": {
+          "200": {
+            "description": "A list of deployments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Deployment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Deployment": {
+        "type": "object",
+        "required": ["id", "environment", "status"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["queued", "running", "succeeded", "failed"]
+          }
+        }
+      }
+    }
+  }
+}
