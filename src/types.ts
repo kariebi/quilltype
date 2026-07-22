@@ -1,4 +1,14 @@
-export type OutputMode = "types" | "fetch-client" | "react-query";
+export type OutputMode =
+  | "types"
+  | "fetch-client"
+  | "react-query"
+  | "axios-client"
+  | "swr"
+  | "zod"
+  | "json-schema";
+
+export type ContractChangeSeverity = "error" | "warning";
+export type ContractReportFormat = "text" | "json" | "markdown";
 
 export interface SourceConfig {
   path?: string;
@@ -21,6 +31,11 @@ export interface QuillTypeConfig {
   };
   breaking?: {
     against: SourceConfig;
+    includeWarnings?: boolean;
+    report?: {
+      format?: ContractReportFormat;
+      output?: string;
+    };
   };
   watch?: {
     pollIntervalMs?: number;
