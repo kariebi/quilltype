@@ -1,0 +1,63 @@
+{
+  "name": "typebridge-cli",
+  "version": "1.0.0",
+  "description": "An OpenAPI workflow CLI for validation, generation, breaking-change checks, and frontend contract sync.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/typebridge-dev/typebridge.git"
+  },
+  "homepage": "https://github.com/typebridge-dev/typebridge#readme",
+  "bugs": {
+    "url": "https://github.com/typebridge-dev/typebridge/issues"
+  },
+  "bin": {
+    "typebridge": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "docs/assets/typebridge-architecture.png",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "overrides": {
+    "js-yaml": "4.3.0"
+  },
+  "scripts": {
+    "prebuild": "node -e \"import('node:fs').then(fs => fs.rmSync('dist', { recursive: true, force: true }))\"",
+    "build": "tsc -p tsconfig.json",
+    "dev": "node --import tsx src/cli.ts",
+    "generate": "node --import tsx src/cli.ts generate",
+    "check": "node --import tsx src/cli.ts check",
+    "watch": "node --import tsx src/cli.ts watch",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "pack:dry-run": "npm pack --json --dry-run --cache ./.npm-cache",
+    "release:check": "npm run build && npm test && npm run generate && npm run check && npm run pack:dry-run"
+  },
+  "keywords": [
+    "openapi",
+    "typescript",
+    "codegen",
+    "cli",
+    "react-query",
+    "sdk"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "openapi-typescript": "^7.10.1",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.13",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}
