@@ -21,15 +21,16 @@ export async function runWatchMode(args: WatchArgs): Promise<void> {
   let rerunRequested = false;
   let lastRemoteFingerprint = "";
   let remoteFailureReported = false;
+  let lastTriggerReason = "initial run";
 
-  const applyPlan = (plan: WatchPlan, trigger: () => void) => {
+  const applyPlan = (plan: WatchPlan, trigger: (reason: string) => void) => {
     closeCurrentWatchers();
 
     const closers: Array<() => void> = [];
     const watchedFiles = [...new Set(plan.localFiles)];
 
     for (const file of watchedFiles) {
-      const watcher = watch(file, () => trigger());
+      const watcher = watch(file, () => trigger(`local change detected in ${file}`));
       closers.push(() => watcher.close());
     }
 
@@ -53,7 +54,7 @@ export async function runWatchMode(args: WatchArgs): Promise<void> {
             lastRemoteFingerprint = fingerprint;
           } else if (fingerprint !== lastRemoteFingerprint) {
             lastRemoteFingerprint = fingerprint;
-            trigger();
+            trigger(`remote change detected from ${plan.remote!.url}`);
           }
 
           remoteFailureReported = false;
@@ -85,9 +86,16 @@ export async function runWatchMode(args: WatchArgs): Promise<void> {
         close();
       }
     };
+
+    console.log(
+      `Watch plan updated: ${watchedFiles.length} local file(s), ${
+        plan.remote ? `remote polling every ${plan.remote.pollIntervalMs}ms` : "no remote polling"
+      }.`,
+    );
   };
 
-  const trigger = () => {
+  const trigger = (reason: string) => {
+    lastTriggerReason = reason;
     clearTimeout(pendingTimer);
     pendingTimer = setTimeout(async () => {
       if (running) {
@@ -96,6 +104,7 @@ export async function runWatchMode(args: WatchArgs): Promise<void> {
       }
 
       running = true;
+      console.log(`Re-running Quill Type because ${lastTriggerReason}...`);
 
       try {
         const cycle = await args.run();
@@ -108,7 +117,7 @@ export async function runWatchMode(args: WatchArgs): Promise<void> {
 
         if (rerunRequested) {
           rerunRequested = false;
-          trigger();
+          trigger("another change arrived while Quill Type was busy");
         }
       }
     }, 250);
