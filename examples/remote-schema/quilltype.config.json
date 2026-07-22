@@ -1,0 +1,20 @@
+{
+  "$schema": "../../schemas/quilltype.schema.json",
+  "source": {
+    "url": "http://localhost:4010/openapi.json"
+  },
+  "outputs": [
+    {
+      "path": "./generated/remote.types.ts",
+      "mode": "types"
+    },
+    {
+      "path": "./generated/remote.swr.ts",
+      "mode": "swr"
+    }
+  ],
+  "watch": {
+    "pollIntervalMs": 5000,
+    "retryDelayMs": 2000
+  }
+}
