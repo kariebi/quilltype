@@ -174,6 +174,10 @@ Supported output modes:
 - `types`
 - `fetch-client`
 - `react-query`
+- `axios-client`
+- `swr`
+- `zod`
+- `json-schema`
 
 All generated files include:
 
@@ -269,14 +273,25 @@ Guide:
 Contributor setup and release notes live in:
 [Contributing guide](./CONTRIBUTING.md)
 
+## More Docs
+
+- [Migration from `openapi-typescript`](./docs/migrate-from-openapi-typescript.md)
+- [Migration from `orval`](./docs/migrate-from-orval.md)
+- [Cookbook recipes](./docs/cookbook.md)
+- [Troubleshooting guide](./docs/troubleshooting.md)
+- [Compatibility notes](./docs/compatibility.md)
+
 ## Examples
 
 Quill Type includes small examples for multiple backend stacks:
 
 - [FastAPI](./examples/fastapi/README.md)
 - [Express](./examples/express/README.md)
+- [NestJS](./examples/nest/README.md)
 - [Go](./examples/go/README.md)
 - [Rust + Axum](./examples/rust-axum/README.md)
+- [Remote schema source](./examples/remote-schema/README.md)
+- [Monorepo layout](./examples/monorepo/README.md)
 
 Examples index:
 [Examples overview](./examples/README.md)
